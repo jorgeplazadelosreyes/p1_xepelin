@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { logOut, checkAuth } from "@/lib/actions";
+import GoogleSheetEmbed from "@/components/iframe/GoogleSheetEmbed";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -33,6 +34,10 @@ export default function Home() {
           </button>
         </div>
       </header>
+      
+      <main>
+        <GoogleSheetEmbed/>
+      </main>
     </div>
   );
 }
