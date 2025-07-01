@@ -2,6 +2,7 @@
 
 import { signIn, signOut } from "next-auth/react";
 import { redirect } from "next/navigation";
+import { authConfig } from "@/config/auth";
 
 export async function logIn(email: string, password: string) {
     const result = await signIn("credentials", {
@@ -16,9 +17,9 @@ export async function logIn(email: string, password: string) {
 }
 
 export const logOut = async () => {
-  await signOut({ callbackUrl: "/login" });
+  await signOut({ callbackUrl: authConfig.loginUrl });
 }
 
-export function checkAuth(status: string, redirectPath: string = "/login") {
+export function checkAuth(status: string, redirectPath: string = authConfig.loginUrl) {
   if (status === "unauthenticated") redirect(redirectPath);
 }
