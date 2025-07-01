@@ -10,9 +10,7 @@ export async function logIn(email: string, password: string) {
       redirect: false,
     });
 
-    if (result?.error) {
-      return { success: false, error: "Invalid credentials" };
-    }
+    if (result?.error) return { success: false, error: "Invalid credentials" };
 
     return { success: true };
 }
@@ -22,7 +20,5 @@ export const logOut = async () => {
 }
 
 export function checkAuth(status: string, redirectPath: string = "/login") {
-  if (status === "unauthenticated") {
-    redirect(redirectPath);
-  }
+  if (status === "unauthenticated") redirect(redirectPath);
 }

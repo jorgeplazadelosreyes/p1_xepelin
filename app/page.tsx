@@ -13,11 +13,7 @@ export default function Home() {
     }
   }, [status]);
 
-  useEffect(() => {}, [status]);
-
-  if (status === "unauthenticated") {
-    return null;
-  }
+  if (status === "unauthenticated") return null;
 
   const handleSignOut = async () => {
     await logOut();
