@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import { authConfig } from "@/config/auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 const handler = NextAuth({
@@ -10,11 +11,11 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (credentials?.email === "user@example.com" && credentials?.password === "password") {
+        if (credentials?.email === authConfig.demoCredentials.email && credentials?.password === authConfig.demoCredentials.password) {
           return {
-            id: "1",
-            name: "Demo User",
-            email: "user@example.com",
+            id: authConfig.demoCredentials.id,
+            name: authConfig.demoCredentials.name,
+            email: authConfig.demoCredentials.email,
           };
         }
         return null;
@@ -22,11 +23,12 @@ const handler = NextAuth({
     }),
   ],
   pages: {
-    signIn: "/login",
+    signIn: authConfig.loginUrl,
   },
   session: {
     strategy: "jwt",
   },
+  secret: authConfig.secret,
 });
 
 export { handler as GET, handler as POST };
