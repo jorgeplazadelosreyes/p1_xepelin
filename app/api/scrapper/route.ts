@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import scraper from '@/lib/scraper';
 
 export async function POST(request: NextRequest) {
   let data;
@@ -20,5 +21,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ message: 'Valid request received', received: data });
+  const blog_posts = await scraper(category)
+  if (blog_posts[0] !== 'success') {
+    return NextResponse.json({ error: blog_posts[0] },{ status: 400 });
+  }
+  const posts = blog_posts[1];
+  return NextResponse.json({ message: 'Valid request received', received: blog_posts[0] });
 }
