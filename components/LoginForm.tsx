@@ -24,6 +24,7 @@ export default function LoginForm() {
         router.refresh();
       }
     } catch (error) {
+      console.error(error);
       setError("An error occurred. Please try again.");
     }
   };
