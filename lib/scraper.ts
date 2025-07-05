@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import pLimit from 'p-limit';
 
 type BlogInfo = {
@@ -109,7 +110,11 @@ async function getReadingTime(url: string): Promise<string> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchArticlesViaNetwork(categorySlug: string): Promise<any[]> {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: true
+  });
   const page = await browser.newPage();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const api_responses: any[] = [];
