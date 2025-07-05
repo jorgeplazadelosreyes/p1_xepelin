@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom';
 import puppeteer from 'puppeteer-core';
+import type { Browser } from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import pLimit from 'p-limit';
 
@@ -15,6 +16,7 @@ type Category = { [key: string]: { category_path: string } };
 const BASE_URL = 'https://xepelin.com';
 const ALLOWED_CATEGORIES = ['all']
 const LIMIT = pLimit(5);
+const PROD_ENV = process.env.NEXT_PROD_ENV === 'true';
 
 export default async function scraper(category: string): Promise<[string, BlogInfo[]]> {
   const all_categories = await getCategories();
@@ -110,11 +112,7 @@ async function getReadingTime(url: string): Promise<string> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchArticlesViaNetwork(categorySlug: string): Promise<any[]> {
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: true
-  });
+  const browser = await launchPuppeteerBrowser();
   const page = await browser.newPage();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const api_responses: any[] = [];
@@ -132,28 +130,44 @@ async function fetchArticlesViaNetwork(categorySlug: string): Promise<any[]> {
     } catch { return [] }
   });
 
-  await page.goto(`${BASE_URL}${categorySlug}`, { waitUntil: 'networkidle2' });
+  try {
+    await page.goto(`${BASE_URL}${categorySlug}`, { waitUntil: 'networkidle2' });
 
-  const load_more_button = 'button.bg-xindigo-500';
+    const load_more_button = 'button.bg-xindigo-500';
+    while (true) {
+      const button = await page.$(load_more_button);
+      if (!button) break;
+      const is_disabled = await page.$eval(load_more_button, btn => btn.hasAttribute('disabled')).catch(() => true);
+      if (is_disabled) break;
 
-  while (true) {
-    const button = await page.$(load_more_button);
-    if (!button) break;
-    const is_disabled = await page.$eval(load_more_button, btn => btn.hasAttribute('disabled')).catch(() => true);
-    if (is_disabled) break;
+      await Promise.all([
+        page.waitForResponse(response => {
+          const url = response.url();
+          return url.includes('apicdn.sanity.io') && url.includes('query=*');
+        }),
+        page.click(load_more_button)
+      ]);
 
-    await Promise.all([
-      page.waitForResponse(response => {
-        const url = response.url();
-        return url.includes('apicdn.sanity.io') && url.includes('query=*');
-      }),
-      page.click(load_more_button)
-    ]);
+      await new Promise(r => setTimeout(r, 200));
+    }
+    await new Promise(r => setTimeout(r, 1000));
 
-    await new Promise(r => setTimeout(r, 200));
-  }
-  await new Promise(r => setTimeout(r, 1000));
-
-  await browser.close();
+    await browser.close();
+  } catch { return [] }
   return api_responses;
+}
+
+async function launchPuppeteerBrowser(): Promise<Browser> {
+  return puppeteer.launch(
+    PROD_ENV
+      ? {
+          args: chromium.args,
+          executablePath: await chromium.executablePath(),
+          headless: true,
+        }
+      : {
+          executablePath: process.env.LOCAL_CHROME_PATH,
+          headless: true,
+        }
+  )
 }
