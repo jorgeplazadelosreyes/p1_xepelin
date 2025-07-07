@@ -5,15 +5,15 @@ import { redirect } from "next/navigation";
 import { authConfig } from "@/config/auth";
 
 export async function logIn(email: string, password: string) {
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+  const result = await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+  });
 
-    if (result?.error) return { success: false, error: "Invalid credentials" };
+  if (result?.error) return { success: false, error: "Invalid credentials" };
 
-    return { success: true };
+  return { success: true };
 }
 
 export const logOut = async () => {
